@@ -41,13 +41,4 @@ contract AddressRegistry {
         require(contractAddress != address(0), "Contract address not found");
         return contractAddress;
     }
-    
-    /**
-     * @dev 관리자 권한을 다른 주소로 이전합니다
-     * @param newAdmin 새 관리자 주소
-     */
-    function transferAdmin(address newAdmin) public onlyAdmin {
-        require(newAdmin != address(0), "Invalid admin address");
-        admin = newAdmin;
-    }
 }

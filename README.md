@@ -33,8 +33,6 @@
   지정한 이름(name)으로 컨트랙트 주소(addr)를 등록하거나 갱신합니다. 오직 admin만 호출 가능하며, 등록/갱신 시 이벤트가 발생합니다.
 - **getContractAddress(string name)**  
   이름(name)으로 등록된 컨트랙트 주소를 반환합니다. 등록되지 않은 경우 예외를 발생시킵니다.
-- **transferAdmin(address newAdmin)**  
-  관리자 권한을 다른 주소(newAdmin)로 이전합니다. 오직 기존 admin만 호출할 수 있습니다.
 
 ---
 
