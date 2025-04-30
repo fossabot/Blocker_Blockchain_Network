@@ -22,7 +22,7 @@
 - 주요 파일 및 디렉터리:
   - `contracts/SoftwareUpdateContract.sol`: 소프트웨어 업데이트 등록, 구매, 설치 확인 등을 관리하는 스마트 컨트랙트.
   - `deploy/deploy_contract.py`: SoftwareUpdateContract 배포 및 레지스트리 등록 스크립트.
-  - `contract_address.txt`: 배포된 SoftwareUpdateContract의 주소와 ABI 정보 저장.
+  - `contract_address.json`: 배포된 SoftwareUpdateContract의 주소와 ABI 정보 저장.
 
 ---
 
@@ -54,7 +54,7 @@
 
 ### update_service/deploy/deploy_contract.py
 - **deploy_contract()**  
-  SoftwareUpdateContract.sol을 컴파일하고, 블록체인에 배포합니다. 배포 후 컨트랙트 주소와 ABI를 contract_address.txt에 저장하고, registry-service의 AddressRegistry 컨트랙트에 이 주소를 등록합니다. 예외 발생 시 로깅 후 예외를 다시 던집니다.
+  SoftwareUpdateContract.sol을 컴파일하고, 블록체인에 배포합니다. 배포 후 컨트랙트 주소와 ABI를 contract_address.json에 저장하고, registry-service의 AddressRegistry 컨트랙트에 이 주소를 등록합니다. 예외 발생 시 로깅 후 예외를 다시 던집니다.
 - **update_registry(web3, account_address, private_key, contract_address)**  
   registry_address.txt에서 레지스트리 컨트랙트 주소와 ABI를 읽어와 setContractAddress("SoftwareUpdateContract", contract_address)를 호출해 주소를 등록합니다. 트랜잭션 성공 여부를 반환합니다.
 
@@ -62,7 +62,7 @@
 
 ## 전체 요약
 - **registry-service**: 여러 스마트 컨트랙트의 주소를 중앙에서 관리하는 레지스트리 컨트랙트 및 배포/관리 도구 제공.
-- **update_service**: 소프트웨어 업데이트의 등록, 구매, 설치 확인 등 전체 라이프사이클을 관리하는 스마트 컨트랙트와 배포 스크립트만 제공.
+- **update_service**: 소프트웨어 업데이트의 등록, 구매, 설치 확인 등 전체 라이프사이클을 관리하는 스마트 컨트랙트와 배포 스크립트 제공.
 - 각 서비스는 독립적으로 컨테이너화되어 블록체인 네트워크와 연동됩니다.
 
 이 구조를 통해 블록체인 기반 소프트웨어 업데이트 및 관리 시스템을 효율적으로 구현할 수 있습니다.

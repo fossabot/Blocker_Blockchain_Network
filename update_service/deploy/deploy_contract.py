@@ -106,10 +106,10 @@ def deploy_contract():
         # 컨트랙트 주소 저장
         contract_data = {"address": contract_address, "abi": contract_abi}
 
-        # 파일에 저장
+        # 파일에 저장 (확장자 .json으로 변경)
         contract_info_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "contract_address.txt",
+            "contract_address.json",
         )
 
         with open(contract_info_path, "w") as f:
