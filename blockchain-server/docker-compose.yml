@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  # 블록체인 노드 (Ganache CLI)
+  ganache:
+    image: trufflesuite/ganache-cli:latest
+    ports:
+      - "8545:8545"
+    command: >
+      --deterministic
+      --mnemonic "test test test test test test test test test test test junk"
+      --accounts 10
+      --networkId 5777
+      --host 0.0.0.0
+    volumes:
+      - ganache_data:/ganache_data
+
+volumes:
+  ganache_data:
