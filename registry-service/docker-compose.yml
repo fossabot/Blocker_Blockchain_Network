@@ -4,6 +4,7 @@ services:
   # 레지스트리 서비스
   registry-service:
     build: .
+    command: python3 deploy/deploy_registry.py
     environment:
       - WEB3_PROVIDER=http://host.docker.internal:8545  # Mac/Windows에서 호스트 시스템에 접근하기 위한 특수 DNS 이름
       - ACCOUNT_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
@@ -12,6 +13,8 @@ services:
       - ./:/app
     extra_hosts:
       - "host.docker.internal:host-gateway"  # Linux 호스트에서도 작동하도록 설정
+    working_dir: /app
+    restart: "no"
 
 networks:
   registry_network:
