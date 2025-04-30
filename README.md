@@ -18,12 +18,11 @@
   - `requirements.txt`, `Dockerfile`, `docker-compose.yml`: 서비스 실행 환경 및 의존성 관리.
 
 ## 3. update_service/
-- 소프트웨어 업데이트 관리용 스마트 컨트랙트 및 관련 서비스입니다.
+- 소프트웨어 업데이트 관리용 스마트 컨트랙트 및 배포 스크립트만 포함합니다.
 - 주요 파일 및 디렉터리:
   - `contracts/SoftwareUpdateContract.sol`: 소프트웨어 업데이트 등록, 구매, 설치 확인 등을 관리하는 스마트 컨트랙트.
   - `deploy/deploy_contract.py`: SoftwareUpdateContract 배포 및 레지스트리 등록 스크립트.
   - `contract_address.txt`: 배포된 SoftwareUpdateContract의 주소와 ABI 정보 저장.
-  - `notification/notification.py`: 블록체인 이벤트(업데이트 등록 등)와 연동되는 알림 및 트랜잭션 처리 로직.
 
 ---
 
@@ -63,21 +62,9 @@
 
 ---
 
-### update_service/notification/notification.py
-- **BlockchainNotifier 클래스**  
-  블록체인 이벤트 관리 및 알림을 담당하는 클래스입니다. 생성 시 Web3 연결, 컨트랙트 로드, 제조사 키 로드 등을 수행합니다.
-- **register_update(...)**  
-  업데이트 등록 트랜잭션을 생성하고, 제조사 서명을 검증합니다. 검증 성공 시 스마트 컨트랙트의 registerUpdate를 호출하여 트랜잭션을 전송합니다.
-- **get_update_details(uid)**  
-  특정 업데이트의 상세 정보를 스마트 컨트랙트에서 조회합니다. 여러 번 재시도하며, 실패 시 최소한의 정보를 반환합니다.
-
-※ SoftwareUpdateContract 주소는 AddressRegistry 컨트랙트에서 동적으로 조회하며, ABI만 contract_address.txt에서 사용합니다.
-
----
-
 ## 전체 요약
 - **registry-service**: 여러 스마트 컨트랙트의 주소를 중앙에서 관리하는 레지스트리 컨트랙트 및 배포/관리 도구 제공.
-- **update_service**: 소프트웨어 업데이트의 등록, 구매, 설치 확인 등 전체 라이프사이클을 관리하는 스마트 컨트랙트와 관련 서비스 제공.
+- **update_service**: 소프트웨어 업데이트의 등록, 구매, 설치 확인 등 전체 라이프사이클을 관리하는 스마트 컨트랙트와 배포 스크립트만 제공.
 - 각 서비스는 독립적으로 컨테이너화되어 블록체인 네트워크와 연동됩니다.
 
 이 구조를 통해 블록체인 기반 소프트웨어 업데이트 및 관리 시스템을 효율적으로 구현할 수 있습니다.
