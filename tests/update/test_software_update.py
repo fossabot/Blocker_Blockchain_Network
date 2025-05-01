@@ -6,7 +6,7 @@ import os
 
 @pytest.fixture(scope="module")
 def w3():
-    return Web3(Web3.HTTPProvider("http://ganache:8545"))
+    return Web3(Web3.HTTPProvider("http://52.78.52.216:8545"))
 
 
 @pytest.fixture(scope="module")

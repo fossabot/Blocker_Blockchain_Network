@@ -3,7 +3,7 @@ version: '3'
 services:
   # 레지스트리 서비스
   registry-service:
-    build: .
+    image: 2271432/registry-service:latest
     command: python3 deploy/deploy_registry.py
     environment:
       - WEB3_PROVIDER=http://host.docker.internal:8545  # Mac/Windows에서 호스트 시스템에 접근하기 위한 특수 DNS 이름
