@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  test:
+    build: .
+    volumes:
+      - ../registry-service:/registry-service
+      - ../update_service:/update_service
+      - ./registry:/app/registry
+      - ./update:/app/update
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    command: ["pytest"]
+    networks:
+      - blockchain-server_default
+networks:
+  blockchain-server_default:
+    external: true
