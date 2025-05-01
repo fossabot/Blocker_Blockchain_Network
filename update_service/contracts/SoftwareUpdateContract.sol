@@ -80,6 +80,7 @@ contract SoftwareUpdateContract {
      * @param description 설명
      * @param price 가격(wei)
      * @param version 버전
+     * @param signature 제조사 서명
      */
     function registerUpdate(
         string memory uid,
@@ -89,8 +90,16 @@ contract SoftwareUpdateContract {
         string memory description,
         uint256 price,
         string memory version,
-        bytes memory /* signature */
-    ) public onlyManufacturer {
+        bytes memory signature
+    ) public {
+        // 메시지 해시 생성 (업데이트 주요 정보)
+        bytes32 messageHash = keccak256(abi.encodePacked(uid, ipfsHash, encryptedKey, hashOfUpdate, description, price, version));
+        // 이더리움 서명 규격 적용
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        // 서명에서 signer 주소 복구
+        address signer = recoverSigner(ethSignedMessageHash, signature);
+        require(signer == manufacturer, "Signature verification failed");
+        require(msg.sender == manufacturer, "Only manufacturer can call this function");
         UpdateInfo memory newUpdate = UpdateInfo({
             uid: uid,
             ipfsHash: ipfsHash,
@@ -104,6 +113,22 @@ contract SoftwareUpdateContract {
         updateGroups[uid].updateInfo = newUpdate;
         updateIds.push(uid);
         emit UpdateRegistered(uid, version, description);
+    }
+
+    // ECDSA 서명 복구 함수
+    function recoverSigner(bytes32 ethSignedMessageHash, bytes memory signature) internal pure returns (address) {
+        require(signature.length == 65, "invalid signature length");
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
+        if (v < 27) v += 27;
+        require(v == 27 || v == 28, "invalid v value");
+        return ecrecover(ethSignedMessageHash, v, r, s);
     }
     
     /**
@@ -187,5 +212,15 @@ contract SoftwareUpdateContract {
     function getUpdateIdByIndex(uint256 index) public view returns (string memory) {
         require(index < updateIds.length, "Index out of bounds");
         return updateIds[index];
+    }
+
+    /**
+     * @dev 업데이트 취소(비활성화) - 제조사만 가능
+     * @param uid 취소할 업데이트 고유 식별자
+     */
+    function cancelUpdate(string memory uid) public onlyManufacturer {
+        UpdateInfo storage update = updateGroups[uid].updateInfo;
+        require(update.isValid, "Update is already invalid");
+        update.isValid = false;
     }
 }

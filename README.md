@@ -38,7 +38,9 @@
 
 ### update_service/contracts/SoftwareUpdateContract.sol
 - **registerUpdate(...)**  
-  제조사만 호출 가능. 소프트웨어 업데이트 정보를 등록하며, 서명(signature)도 함께 받습니다. 등록 시 이벤트 발생. (컨트랙트 내부에서 서명 검증은 하지 않음)
+  제조사만 호출 가능. 소프트웨어 업데이트 정보를 등록하며, 제조사 서명(signature) 검증을 컨트랙트 내부에서 수행합니다. 등록 시 이벤트 발생.
+- **cancelUpdate(string uid)**  
+  제조사만 호출 가능. 이미 등록된 업데이트를 취소(비활성화)하여 더 이상 구매/설치가 불가능하게 만듭니다.
 - **purchaseUpdate(string uid)**  
   소유자가 업데이트를 구매할 때 호출. 결제와 동시에 접근 권한이 부여되고, 이벤트가 발생합니다.
 - **getUpdateInfo(string uid)**  
