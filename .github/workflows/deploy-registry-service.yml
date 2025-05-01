@@ -1,0 +1,48 @@
+name: Deploy Registry Service
+
+on:
+  push:
+    paths:
+      - 'registry-service/**'
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push registry-service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./registry-service
+          file: ./registry-service/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/registry-service:latest
+
+      - name: Prepare SSH key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" | base64 -d > ec2_key.pem
+          chmod 600 ec2_key.pem
+
+      - name: Restart registry-service, update_service on EC2
+        run: |
+          ssh -i ec2_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "\
+            cd ~/blockchain-network/registry-service && \
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/registry-service:latest && \
+            docker-compose down || true && \
+            docker-compose up -d && \
+            cd ~/blockchain-network/update_service && \
+            docker-compose down || true && \
+            docker-compose up -d
+          "
