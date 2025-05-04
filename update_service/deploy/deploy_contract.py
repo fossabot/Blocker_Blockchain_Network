@@ -131,10 +131,7 @@ def update_registry(web3, account_address, private_key, contract_address):
     """레지스트리 컨트랙트에 소프트웨어 업데이트 컨트랙트 주소 등록"""
     try:
         # 레지스트리 주소 및 ABI 로드
-        registry_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "registry_address.json",
-        )
+        registry_path = "/app/registry-service/registry_address.json"
 
         if not os.path.exists(registry_path):
             logger.warning(
