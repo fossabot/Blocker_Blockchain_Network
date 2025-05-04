@@ -70,3 +70,34 @@
 이 구조를 통해 블록체인 기반 소프트웨어 업데이트 및 관리 시스템을 효율적으로 구현할 수 있습니다.
 
 ---
+
+## 실행 방법 (명령어)
+
+1. **블록체인 서버 실행**
+```bash
+cd blockchain-server
+sudo docker-compose up -d
+```
+
+2. **레지스트리 컨트랙트 배포**
+```bash
+cd ../registry-service
+sudo docker-compose up --build
+```
+
+3. **업데이트 컨트랙트 배포 및 레지스트리 등록**
+```bash
+cd ../update_service
+sudo docker-compose up --build
+```
+
+※ 도커 환경에서 SoftwareUpdateContract 주소 조회 테스트 (네트워크 이름은 환경에 맞게 수정)
+```bash
+sudo docker run --rm \
+  --network blockchain-server_default \
+  -v $(pwd)/update_service:/app \
+  -v $(pwd)/registry-service:/app/registry-service \
+  -w /app \
+  python:3.9-slim \
+  bash -c "pip install web3 py-solc-x python-dotenv && python3 deploy/get_software_update_address.py"
+```
