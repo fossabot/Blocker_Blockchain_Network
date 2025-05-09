@@ -12,6 +12,7 @@ services:
       --accounts 10
       --networkId 5777
       --host 0.0.0.0
+      --gasLimit 30000000
     volumes:
       - ganache_data:/ganache_data
 

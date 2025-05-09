@@ -189,7 +189,7 @@ def update_registry(web3, account_address, private_key, contract_address, contra
         if private_key:
             tx_params = {
                 "from": account_address,
-                "gas": 200000,
+                "gas": 10000000,
                 "gasPrice": web3.to_wei("50", "gwei"),
                 "nonce": web3.eth.get_transaction_count(account_address),
             }
@@ -204,7 +204,7 @@ def update_registry(web3, account_address, private_key, contract_address, contra
             ).transact(
                 {
                     "from": account_address,
-                    "gas": 200000,
+                    "gas": 10000000,
                     "gasPrice": web3.to_wei("50", "gwei"),
                 }
             )
