@@ -27,6 +27,10 @@ contract SoftwareUpdateContract {
     
     mapping(string => UpdateGroup) private updateGroups;
     mapping(address => string[]) private ownerUpdates;
+    mapping(address => mapping(string => uint256)) private escrowedPayments; // [구매자][업데이트ID] => 락업 금액
+    mapping(address => mapping(string => bool)) private isInstalled; // [구매자][업데이트ID] => 설치 완료 여부
+    mapping(address => mapping(string => bool)) private isRefunded; // [구매자][업데이트ID] => 환불 여부
+    mapping(string => address[]) private updateBuyers; // 업데이트별 구매자 목록
     
     event UpdateRegistered(string uid, string version, string description);
     event UpdateDelivered(address owner, string uid);
@@ -88,17 +92,17 @@ contract SoftwareUpdateContract {
         return ecrecover(ethSignedMessageHash, v, r, s);
     }
     
-    // 권한 부여 없이 구매만 기록
     function purchaseUpdate(string memory uid) public payable {
         UpdateInfo storage update = updateGroups[uid].updateInfo;
         require(update.isValid, "Update is not valid");
         require(msg.value >= update.price, "Insufficient payment");
+        require(escrowedPayments[msg.sender][uid] == 0, "Already purchased");
         ownerUpdates[msg.sender].push(uid);
-        payable(manufacturer).transfer(msg.value);
+        escrowedPayments[msg.sender][uid] = msg.value;
+        updateBuyers[uid].push(msg.sender);
         emit UpdateDelivered(msg.sender, uid);
     }
     
-    // 권한 확인 및 암호화키 제공 없이 정보만 반환
     function getUpdateInfo(string memory uid) public view returns (
         string memory ipfsHash,
         bytes memory encryptedKey,
@@ -120,8 +124,13 @@ contract SoftwareUpdateContract {
         );
     }
     
-    // 설치 확인 시 권한 체크 제거
     function confirmInstallation(string memory uid, string memory deviceId) public {
+        require(escrowedPayments[msg.sender][uid] > 0, "No escrowed payment");
+        require(!isInstalled[msg.sender][uid], "Already installed");
+        isInstalled[msg.sender][uid] = true;
+        uint256 payment = escrowedPayments[msg.sender][uid];
+        escrowedPayments[msg.sender][uid] = 0;
+        payable(manufacturer).transfer(payment);
         emit UpdateInstalled(msg.sender, uid, deviceId);
     }
     
@@ -143,5 +152,34 @@ contract SoftwareUpdateContract {
         require(bytes(update.uid).length != 0, "Update does not exist");
         require(update.isValid, "Update is already invalid");
         update.isValid = false;
+        // 구매자 환불 처리
+        address[] memory buyers = updateBuyers[uid];
+        for (uint256 j = 0; j < buyers.length; j++) {
+            address buyer = buyers[j];
+            if (escrowedPayments[buyer][uid] > 0 && !isRefunded[buyer][uid] && !isInstalled[buyer][uid]) {
+                uint256 refundAmount = escrowedPayments[buyer][uid];
+                escrowedPayments[buyer][uid] = 0;
+                isRefunded[buyer][uid] = true;
+                payable(buyer).transfer(refundAmount);
+            }
+        }
+    }
+
+    // 구매자가 직접 환불을 요청할 수 있는 함수(업데이트가 취소된 경우만)
+    function refundOnCancel(string memory uid) public {
+        UpdateInfo storage update = updateGroups[uid].updateInfo;
+        require(!update.isValid, "Update is not cancelled");
+        require(escrowedPayments[msg.sender][uid] > 0, "No escrowed payment");
+        require(!isInstalled[msg.sender][uid], "Already installed");
+        require(!isRefunded[msg.sender][uid], "Already refunded");
+        uint256 refundAmount = escrowedPayments[msg.sender][uid];
+        escrowedPayments[msg.sender][uid] = 0;
+        isRefunded[msg.sender][uid] = true;
+        payable(msg.sender).transfer(refundAmount);
+    }
+
+    // 모든 구매자 주소를 반환(업데이트별)
+    function getAllOwners(string memory uid) public view returns (address[] memory) {
+        return updateBuyers[uid];
     }
 }
