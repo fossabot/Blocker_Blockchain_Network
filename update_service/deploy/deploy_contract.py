@@ -117,8 +117,10 @@ def deploy_contract():
 
         logger.info(f"컨트랙트 정보가 {contract_info_path}에 저장되었습니다.")
 
-        # 레지스트리에 컨트랙트 주소 등록
-        update_registry(web3, account_address, private_key, contract_address)
+        # 레지스트리에 컨트랙트 주소 및 ABI 등록
+        update_registry(
+            web3, account_address, private_key, contract_address, contract_abi
+        )
 
         return contract_address, contract_abi
 
@@ -127,8 +129,8 @@ def deploy_contract():
         raise
 
 
-def update_registry(web3, account_address, private_key, contract_address):
-    """레지스트리 컨트랙트에 소프트웨어 업데이트 컨트랙트 주소 등록"""
+def update_registry(web3, account_address, private_key, contract_address, contract_abi):
+    """레지스트리 컨트랙트에 소프트웨어 업데이트 컨트랙트 주소 및 ABI 등록"""
     try:
         # 레지스트리 주소 및 ABI 로드
         registry_path = "/app/registry-service/registry_address.json"
@@ -150,7 +152,7 @@ def update_registry(web3, account_address, private_key, contract_address):
             address=registry_address, abi=registry_abi
         )
 
-        # 소프트웨어 업데이트 컨트랙트 주소 등록 트랜잭션 생성
+        # 주소 등록
         if private_key:
             tx_params = {
                 "from": account_address,
@@ -158,7 +160,6 @@ def update_registry(web3, account_address, private_key, contract_address):
                 "gasPrice": web3.to_wei("50", "gwei"),
                 "nonce": web3.eth.get_transaction_count(account_address),
             }
-
             tx = registry_contract.functions.setContractAddress(
                 "SoftwareUpdateContract", contract_address
             ).build_transaction(tx_params)
@@ -174,17 +175,46 @@ def update_registry(web3, account_address, private_key, contract_address):
                     "gasPrice": web3.to_wei("50", "gwei"),
                 }
             )
-
-        # 트랜잭션 영수증 대기
         tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-
         if tx_receipt.status == 1:
-            logger.info(f"레지스트리 업데이트 성공! 트랜잭션 해시: {tx_hash.hex()}")
-            return True
+            logger.info(
+                f"레지스트리 주소 업데이트 성공! 트랜잭션 해시: {tx_hash.hex()}"
+            )
         else:
-            logger.error("레지스트리 업데이트 실패")
+            logger.error("레지스트리 주소 업데이트 실패")
             return False
 
+        # ABI 등록 (json 문자열로 변환)
+        abi_json = json.dumps(contract_abi)
+        if private_key:
+            tx_params = {
+                "from": account_address,
+                "gas": 200000,
+                "gasPrice": web3.to_wei("50", "gwei"),
+                "nonce": web3.eth.get_transaction_count(account_address),
+            }
+            tx = registry_contract.functions.setAbi(
+                "SoftwareUpdateContract", abi_json
+            ).build_transaction(tx_params)
+            signed_tx = web3.eth.account.sign_transaction(tx, private_key)
+            tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+        else:
+            tx_hash = registry_contract.functions.setAbi(
+                "SoftwareUpdateContract", abi_json
+            ).transact(
+                {
+                    "from": account_address,
+                    "gas": 200000,
+                    "gasPrice": web3.to_wei("50", "gwei"),
+                }
+            )
+        tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+        if tx_receipt.status == 1:
+            logger.info(f"레지스트리 ABI 업데이트 성공! 트랜잭션 해시: {tx_hash.hex()}")
+            return True
+        else:
+            logger.error("레지스트리 ABI 업데이트 실패")
+            return False
     except Exception as e:
         logger.error(f"레지스트리 업데이트 중 오류 발생: {str(e)}")
         return False

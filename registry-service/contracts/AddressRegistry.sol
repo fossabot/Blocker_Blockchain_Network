@@ -8,6 +8,7 @@ pragma solidity ^0.8.17;
 contract AddressRegistry {
     address public admin;
     mapping(string => address) public contracts;
+    mapping(string => string) public abis;
     
     event ContractAddressUpdated(string name, address indexed addr, uint256 timestamp);
     
@@ -40,5 +41,25 @@ contract AddressRegistry {
         address contractAddress = contracts[name];
         require(contractAddress != address(0), "Contract address not found");
         return contractAddress;
+    }
+
+    /**
+     * @dev 컨트랙트 ABI를 등록하거나 업데이트합니다
+     * @param name 컨트랙트 이름 (예: "SoftwareUpdateContract")
+     * @param abiJson ABI JSON 문자열
+     */
+    function setAbi(string memory name, string memory abiJson) public onlyAdmin {
+        abis[name] = abiJson;
+    }
+
+    /**
+     * @dev 컨트랙트 ABI를 조회합니다
+     * @param name 컨트랙트 이름
+     * @return ABI JSON 문자열
+     */
+    function getAbi(string memory name) public view returns (string memory) {
+        string memory abiJson = abis[name];
+        require(bytes(abiJson).length != 0, "ABI not found");
+        return abiJson;
     }
 }
