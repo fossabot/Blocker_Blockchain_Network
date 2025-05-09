@@ -12,7 +12,7 @@ contract SoftwareUpdateContract {
     struct UpdateInfo {
         string uid;
         string ipfsHash;
-        string encryptedKey;
+        bytes encryptedKey;
         string hashOfUpdate;
         string description;
         uint256 price;
@@ -46,7 +46,7 @@ contract SoftwareUpdateContract {
     function registerUpdate(
         string memory uid,
         string memory ipfsHash,
-        string memory encryptedKey,
+        bytes memory encryptedKey,
         string memory hashOfUpdate,
         string memory description,
         uint256 price,
@@ -101,7 +101,7 @@ contract SoftwareUpdateContract {
     // 권한 확인 및 암호화키 제공 없이 정보만 반환
     function getUpdateInfo(string memory uid) public view returns (
         string memory ipfsHash,
-        string memory encryptedKey,
+        bytes memory encryptedKey,
         string memory hashOfUpdate,
         string memory description,
         uint256 price,
