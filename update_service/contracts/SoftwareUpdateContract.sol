@@ -105,7 +105,8 @@ contract SoftwareUpdateContract {
         string memory hashOfUpdate,
         string memory description,
         uint256 price,
-        string memory version
+        string memory version,
+        bool isValid
     ) {
         UpdateInfo storage update = updateGroups[uid].updateInfo;
         return (
@@ -114,7 +115,8 @@ contract SoftwareUpdateContract {
             update.hashOfUpdate,
             update.description,
             update.price,
-            update.version
+            update.version,
+            update.isValid
         );
     }
     
