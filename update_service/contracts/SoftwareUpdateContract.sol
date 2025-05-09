@@ -138,6 +138,7 @@ contract SoftwareUpdateContract {
 
     function cancelUpdate(string memory uid) public onlyManufacturer {
         UpdateInfo storage update = updateGroups[uid].updateInfo;
+        require(bytes(update.uid).length != 0, "Update does not exist");
         require(update.isValid, "Update is already invalid");
         update.isValid = false;
     }
