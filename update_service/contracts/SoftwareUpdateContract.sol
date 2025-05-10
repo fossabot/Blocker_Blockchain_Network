@@ -178,6 +178,19 @@ contract SoftwareUpdateContract {
         payable(msg.sender).transfer(refundAmount);
     }
 
+    // 구매자가 CP-ABE 속성 미일치 등으로 설치 불가 시 환불 요청 함수
+    function refundOnNotMatch(string memory uid) public {
+        UpdateInfo storage update = updateGroups[uid].updateInfo;
+        require(update.isValid, "Update is not valid (already cancelled)");
+        require(escrowedPayments[msg.sender][uid] > 0, "No escrowed payment");
+        require(!isInstalled[msg.sender][uid], "Already installed");
+        require(!isRefunded[msg.sender][uid], "Already refunded");
+        uint256 refundAmount = escrowedPayments[msg.sender][uid];
+        escrowedPayments[msg.sender][uid] = 0;
+        isRefunded[msg.sender][uid] = true;
+        payable(msg.sender).transfer(refundAmount);
+    }
+
     // 모든 구매자 주소를 반환(업데이트별)
     function getAllOwners(string memory uid) public view returns (address[] memory) {
         return updateBuyers[uid];
