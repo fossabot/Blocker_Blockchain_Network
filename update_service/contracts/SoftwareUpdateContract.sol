@@ -195,8 +195,8 @@ contract SoftwareUpdateContract {
     function getAllOwners(string memory uid) public view returns (address[] memory) {
         return updateBuyers[uid];
     }
-    // 구매자가 아직 설치하지 않았고 환불도 받지 않은 업데이트 목록을 상세 정보 배열로 반환
-    function getPendingUpdatesForOwner() public view returns (
+    // 사용자가 설치했거나 환불받은 기록이 있는 업데이트를 제외한 전체 업데이트 목록 반환
+    function getAvailableUpdatesForOwner() public view returns (
         string[] memory uids,
         string[] memory ipfsHashes,
         bytes[] memory encryptedKeys,
@@ -206,10 +206,9 @@ contract SoftwareUpdateContract {
         string[] memory versions,
         bool[] memory isValids
     ) {
-        string[] storage allUpdates = ownerUpdates[msg.sender];
         uint256 count = 0;
-        for (uint256 i = 0; i < allUpdates.length; i++) {
-            string memory uid = allUpdates[i];
+        for (uint256 i = 0; i < updateIds.length; i++) {
+            string memory uid = updateIds[i];
             if (!isInstalled[msg.sender][uid] && !isRefunded[msg.sender][uid]) {
                 count++;
             }
@@ -223,8 +222,8 @@ contract SoftwareUpdateContract {
         versions = new string[](count);
         isValids = new bool[](count);
         uint256 idx = 0;
-        for (uint256 i = 0; i < allUpdates.length; i++) {
-            string memory uid = allUpdates[i];
+        for (uint256 i = 0; i < updateIds.length; i++) {
+            string memory uid = updateIds[i];
             if (!isInstalled[msg.sender][uid] && !isRefunded[msg.sender][uid]) {
                 UpdateInfo storage update = updateGroups[uid].updateInfo;
                 uids[idx] = update.uid;
