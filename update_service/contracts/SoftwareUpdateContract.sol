@@ -195,26 +195,48 @@ contract SoftwareUpdateContract {
     function getAllOwners(string memory uid) public view returns (address[] memory) {
         return updateBuyers[uid];
     }
-    // 구매자가 아직 설치하지 않았고 환불도 받지 않은 업데이트 목록 반환
-    function getPendingUpdatesForOwner() public view returns (string[] memory) {
+    // 구매자가 아직 설치하지 않았고 환불도 받지 않은 업데이트 목록을 상세 정보 배열로 반환
+    function getPendingUpdatesForOwner() public view returns (
+        string[] memory uids,
+        string[] memory ipfsHashes,
+        bytes[] memory encryptedKeys,
+        string[] memory hashOfUpdates,
+        string[] memory descriptions,
+        uint256[] memory prices,
+        string[] memory versions,
+        bool[] memory isValids
+    ) {
         string[] storage allUpdates = ownerUpdates[msg.sender];
         uint256 count = 0;
-        // 1차 카운트
         for (uint256 i = 0; i < allUpdates.length; i++) {
             string memory uid = allUpdates[i];
             if (!isInstalled[msg.sender][uid] && !isRefunded[msg.sender][uid]) {
                 count++;
             }
         }
-        string[] memory pending = new string[](count);
+        uids = new string[](count);
+        ipfsHashes = new string[](count);
+        encryptedKeys = new bytes[](count);
+        hashOfUpdates = new string[](count);
+        descriptions = new string[](count);
+        prices = new uint256[](count);
+        versions = new string[](count);
+        isValids = new bool[](count);
         uint256 idx = 0;
         for (uint256 i = 0; i < allUpdates.length; i++) {
             string memory uid = allUpdates[i];
             if (!isInstalled[msg.sender][uid] && !isRefunded[msg.sender][uid]) {
-                pending[idx] = uid;
+                UpdateInfo storage update = updateGroups[uid].updateInfo;
+                uids[idx] = update.uid;
+                ipfsHashes[idx] = update.ipfsHash;
+                encryptedKeys[idx] = update.encryptedKey;
+                hashOfUpdates[idx] = update.hashOfUpdate;
+                descriptions[idx] = update.description;
+                prices[idx] = update.price;
+                versions[idx] = update.version;
+                isValids[idx] = update.isValid;
                 idx++;
             }
         }
-        return pending;
     }
 }
