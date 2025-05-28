@@ -238,4 +238,48 @@ contract SoftwareUpdateContract {
             }
         }
     }
+
+    // 사용자가 구매한 업데이트의 히스토리(구매, 설치, 환불 상태 포함)를 반환
+    function getOwnerUpdateHistory() public view returns (
+        string[] memory uids,
+        string[] memory ipfsHashes,
+        bytes[] memory encryptedKeys,
+        string[] memory hashOfUpdates,
+        string[] memory descriptions,
+        uint256[] memory prices,
+        string[] memory versions,
+        bool[] memory isValids,
+        bool[] memory isPurchased,
+        bool[] memory isInstalledArr,
+        bool[] memory isRefundedArr
+    ) {
+        string[] storage allUpdates = ownerUpdates[msg.sender];
+        uint256 count = allUpdates.length;
+        uids = new string[](count);
+        ipfsHashes = new string[](count);
+        encryptedKeys = new bytes[](count);
+        hashOfUpdates = new string[](count);
+        descriptions = new string[](count);
+        prices = new uint256[](count);
+        versions = new string[](count);
+        isValids = new bool[](count);
+        isPurchased = new bool[](count);
+        isInstalledArr = new bool[](count);
+        isRefundedArr = new bool[](count);
+        for (uint256 i = 0; i < count; i++) {
+            string memory uid = allUpdates[i];
+            UpdateInfo storage update = updateGroups[uid].updateInfo;
+            uids[i] = update.uid;
+            ipfsHashes[i] = update.ipfsHash;
+            encryptedKeys[i] = update.encryptedKey;
+            hashOfUpdates[i] = update.hashOfUpdate;
+            descriptions[i] = update.description;
+            prices[i] = update.price;
+            versions[i] = update.version;
+            isValids[i] = update.isValid;
+            isPurchased[i] = escrowedPayments[msg.sender][uid] > 0;
+            isInstalledArr[i] = isInstalled[msg.sender][uid];
+            isRefundedArr[i] = isRefunded[msg.sender][uid];
+        }
+    }
 }
