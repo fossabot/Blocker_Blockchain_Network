@@ -31,6 +31,10 @@ contract SoftwareUpdateContract {
     mapping(address => mapping(string => bool)) private isInstalled; // [구매자][업데이트ID] => 설치 완료 여부
     mapping(address => mapping(string => bool)) private isRefunded; // [구매자][업데이트ID] => 환불 여부
     mapping(string => address[]) private updateBuyers; // 업데이트별 구매자 목록
+    // --- 시각 정보 저장용 매핑 추가 ---
+    mapping(address => mapping(string => uint256)) private purchaseTimestamps; // 구매 시각
+    mapping(address => mapping(string => uint256)) private installTimestamps;  // 설치 완료 시각
+    mapping(address => mapping(string => uint256)) private refundTimestamps;   // 환불 시각
     
     event UpdateRegistered(string uid, string version, string description);
     event UpdateDelivered(address owner, string uid);
@@ -100,6 +104,7 @@ contract SoftwareUpdateContract {
         ownerUpdates[msg.sender].push(uid);
         escrowedPayments[msg.sender][uid] = msg.value;
         updateBuyers[uid].push(msg.sender);
+        purchaseTimestamps[msg.sender][uid] = block.timestamp; // 구매 시각 기록
         emit UpdateDelivered(msg.sender, uid);
     }
     
@@ -128,6 +133,7 @@ contract SoftwareUpdateContract {
         require(escrowedPayments[msg.sender][uid] > 0, "No escrowed payment");
         require(!isInstalled[msg.sender][uid], "Already installed");
         isInstalled[msg.sender][uid] = true;
+        installTimestamps[msg.sender][uid] = block.timestamp; // 설치 완료 시각 기록
         uint256 payment = escrowedPayments[msg.sender][uid];
         escrowedPayments[msg.sender][uid] = 0;
         payable(manufacturer).transfer(payment);
@@ -175,6 +181,7 @@ contract SoftwareUpdateContract {
         uint256 refundAmount = escrowedPayments[msg.sender][uid];
         escrowedPayments[msg.sender][uid] = 0;
         isRefunded[msg.sender][uid] = true;
+        refundTimestamps[msg.sender][uid] = block.timestamp; // 환불 시각 기록
         payable(msg.sender).transfer(refundAmount);
     }
 
@@ -188,6 +195,7 @@ contract SoftwareUpdateContract {
         uint256 refundAmount = escrowedPayments[msg.sender][uid];
         escrowedPayments[msg.sender][uid] = 0;
         isRefunded[msg.sender][uid] = true;
+        refundTimestamps[msg.sender][uid] = block.timestamp; // 환불 시각 기록
         payable(msg.sender).transfer(refundAmount);
     }
 
@@ -251,7 +259,10 @@ contract SoftwareUpdateContract {
         bool[] memory isValids,
         bool[] memory isPurchased,
         bool[] memory isInstalledArr,
-        bool[] memory isRefundedArr
+        bool[] memory isRefundedArr,
+        uint256[] memory purchaseTimes,
+        uint256[] memory installTimes,
+        uint256[] memory refundTimes
     ) {
         string[] storage allUpdates = ownerUpdates[msg.sender];
         uint256 count = allUpdates.length;
@@ -266,6 +277,9 @@ contract SoftwareUpdateContract {
         isPurchased = new bool[](count);
         isInstalledArr = new bool[](count);
         isRefundedArr = new bool[](count);
+        purchaseTimes = new uint256[](count);
+        installTimes = new uint256[](count);
+        refundTimes = new uint256[](count);
         for (uint256 i = 0; i < count; i++) {
             string memory uid = allUpdates[i];
             UpdateInfo storage update = updateGroups[uid].updateInfo;
@@ -280,6 +294,9 @@ contract SoftwareUpdateContract {
             isPurchased[i] = escrowedPayments[msg.sender][uid] > 0;
             isInstalledArr[i] = isInstalled[msg.sender][uid];
             isRefundedArr[i] = isRefunded[msg.sender][uid];
+            purchaseTimes[i] = purchaseTimestamps[msg.sender][uid];
+            installTimes[i] = installTimestamps[msg.sender][uid];
+            refundTimes[i] = refundTimestamps[msg.sender][uid];
         }
     }
 }
