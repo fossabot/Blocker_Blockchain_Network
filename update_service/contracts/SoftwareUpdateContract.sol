@@ -31,6 +31,10 @@ contract SoftwareUpdateContract {
     mapping(address => mapping(string => bool)) private isInstalled; // [구매자][업데이트ID] => 설치 완료 여부
     mapping(address => mapping(string => bool)) private isRefunded; // [구매자][업데이트ID] => 환불 여부
     mapping(string => address[]) private updateBuyers; // 업데이트별 구매자 목록
+    // --- 시각 정보 저장용 매핑 추가 ---
+    mapping(address => mapping(string => uint256)) private purchaseTimestamps; // 구매 시각
+    mapping(address => mapping(string => uint256)) private installTimestamps;  // 설치 완료 시각
+    mapping(address => mapping(string => uint256)) private refundTimestamps;   // 환불 시각
     
     event UpdateRegistered(string uid, string version, string description);
     event UpdateDelivered(address owner, string uid);
@@ -100,6 +104,7 @@ contract SoftwareUpdateContract {
         ownerUpdates[msg.sender].push(uid);
         escrowedPayments[msg.sender][uid] = msg.value;
         updateBuyers[uid].push(msg.sender);
+        purchaseTimestamps[msg.sender][uid] = block.timestamp; // 구매 시각 기록
         emit UpdateDelivered(msg.sender, uid);
     }
     
@@ -128,6 +133,7 @@ contract SoftwareUpdateContract {
         require(escrowedPayments[msg.sender][uid] > 0, "No escrowed payment");
         require(!isInstalled[msg.sender][uid], "Already installed");
         isInstalled[msg.sender][uid] = true;
+        installTimestamps[msg.sender][uid] = block.timestamp; // 설치 완료 시각 기록
         uint256 payment = escrowedPayments[msg.sender][uid];
         escrowedPayments[msg.sender][uid] = 0;
         payable(manufacturer).transfer(payment);
@@ -175,11 +181,114 @@ contract SoftwareUpdateContract {
         uint256 refundAmount = escrowedPayments[msg.sender][uid];
         escrowedPayments[msg.sender][uid] = 0;
         isRefunded[msg.sender][uid] = true;
+        refundTimestamps[msg.sender][uid] = block.timestamp; // 환불 시각 기록
+        payable(msg.sender).transfer(refundAmount);
+    }
+
+    // 구매자가 CP-ABE 속성 미일치 등으로 설치 불가 시 환불 요청 함수
+    function refundOnNotMatch(string memory uid) public {
+        UpdateInfo storage update = updateGroups[uid].updateInfo;
+        require(update.isValid, "Update is not valid (already cancelled)");
+        require(escrowedPayments[msg.sender][uid] > 0, "No escrowed payment");
+        require(!isInstalled[msg.sender][uid], "Already installed");
+        require(!isRefunded[msg.sender][uid], "Already refunded");
+        uint256 refundAmount = escrowedPayments[msg.sender][uid];
+        escrowedPayments[msg.sender][uid] = 0;
+        isRefunded[msg.sender][uid] = true;
+        refundTimestamps[msg.sender][uid] = block.timestamp; // 환불 시각 기록
         payable(msg.sender).transfer(refundAmount);
     }
 
     // 모든 구매자 주소를 반환(업데이트별)
     function getAllOwners(string memory uid) public view returns (address[] memory) {
         return updateBuyers[uid];
+    }
+    // 사용자가 설치했거나 환불받은 기록이 있는 업데이트를 제외한 전체 업데이트 목록 반환
+    function getAvailableUpdatesForOwner() public view returns (
+        string[] memory uids,
+        string[] memory ipfsHashes,
+        bytes[] memory encryptedKeys,
+        string[] memory hashOfUpdates,
+        string[] memory descriptions,
+        uint256[] memory prices,
+        string[] memory versions,
+        bool[] memory isValids
+    ) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < updateIds.length; i++) {
+            string memory uid = updateIds[i];
+            if (!isInstalled[msg.sender][uid] && !isRefunded[msg.sender][uid]) {
+                count++;
+            }
+        }
+        uids = new string[](count);
+        ipfsHashes = new string[](count);
+        encryptedKeys = new bytes[](count);
+        hashOfUpdates = new string[](count);
+        descriptions = new string[](count);
+        prices = new uint256[](count);
+        versions = new string[](count);
+        isValids = new bool[](count);
+        uint256 idx = 0;
+        for (uint256 i = 0; i < updateIds.length; i++) {
+            string memory uid = updateIds[i];
+            if (!isInstalled[msg.sender][uid] && !isRefunded[msg.sender][uid]) {
+                UpdateInfo storage update = updateGroups[uid].updateInfo;
+                uids[idx] = update.uid;
+                ipfsHashes[idx] = update.ipfsHash;
+                encryptedKeys[idx] = update.encryptedKey;
+                hashOfUpdates[idx] = update.hashOfUpdate;
+                descriptions[idx] = update.description;
+                prices[idx] = update.price;
+                versions[idx] = update.version;
+                isValids[idx] = update.isValid;
+                idx++;
+            }
+        }
+    }
+
+    struct UpdateHistory {
+        string uid;
+        string ipfsHash;
+        bytes encryptedKey;
+        string hashOfUpdate;
+        string description;
+        uint256 price;
+        string version;
+        bool isValid;
+        bool isPurchased;
+        bool isInstalled;
+        bool isRefunded;
+        uint256 purchaseTime;
+        uint256 installTime;
+        uint256 refundTime;
+    }
+
+    // 사용자가 구매한 업데이트의 히스토리(구매, 설치, 환불 상태 포함)를 반환
+    function getOwnerUpdateHistory() public view returns (UpdateHistory[] memory) {
+        string[] storage allUpdates = ownerUpdates[msg.sender];
+        uint256 count = allUpdates.length;
+        UpdateHistory[] memory histories = new UpdateHistory[](count);
+        for (uint256 i = 0; i < count; i++) {
+            string memory uid = allUpdates[i];
+            UpdateInfo storage update = updateGroups[uid].updateInfo;
+            histories[i] = UpdateHistory({
+                uid: update.uid,
+                ipfsHash: update.ipfsHash,
+                encryptedKey: update.encryptedKey,
+                hashOfUpdate: update.hashOfUpdate,
+                description: update.description,
+                price: update.price,
+                version: update.version,
+                isValid: update.isValid,
+                isPurchased: escrowedPayments[msg.sender][uid] > 0,
+                isInstalled: isInstalled[msg.sender][uid],
+                isRefunded: isRefunded[msg.sender][uid],
+                purchaseTime: purchaseTimestamps[msg.sender][uid],
+                installTime: installTimestamps[msg.sender][uid],
+                refundTime: refundTimestamps[msg.sender][uid]
+            });
+        }
+        return histories;
     }
 }

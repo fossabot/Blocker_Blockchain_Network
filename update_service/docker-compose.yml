@@ -3,6 +3,7 @@ version: '3'
 services:
   update-service:
     image: 2271432/update_service:latest
+    platform: linux/amd64
     command: python3 deploy/deploy_contract.py
     environment:
       - WEB3_PROVIDER=http://host.docker.internal:8545
