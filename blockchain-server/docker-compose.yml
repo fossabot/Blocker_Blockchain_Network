@@ -15,6 +15,12 @@ services:
       --gasLimit 30000000
     volumes:
       - ganache_data:/ganache_data
+    networks:
+      - app-network   # 공통 네트워크
 
 volumes:
   ganache_data:
+
+networks:
+  app-network:
+    external: true    # 이미 만들어둔 네트워크를 공유
