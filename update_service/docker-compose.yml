@@ -18,5 +18,5 @@ services:
     restart: "no"
 
 networks:
-  update_network:
+  app-network:
     driver: bridge

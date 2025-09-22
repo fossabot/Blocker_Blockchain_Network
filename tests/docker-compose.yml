@@ -12,7 +12,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
     command: ["pytest"]
     networks:
-      - blockchain-server_default
+      - app-network
 networks:
-  blockchain-server_default:
-    external: true
+  app-network:
+    driver: bridge

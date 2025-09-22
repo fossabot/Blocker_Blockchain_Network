@@ -23,4 +23,8 @@ volumes:
 
 networks:
   app-network:
+<<<<<<< HEAD
     external: bridge    # 이미 만들어둔 네트워크를 공유
+=======
+    driver: bridge
+>>>>>>> origin/main

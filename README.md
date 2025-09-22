@@ -1,33 +1,72 @@
 # Blocker Blockchain
 
-### 1. 서비스 개요
-- 블록체인 기반 소프트웨어 업데이트 및 주소 레지스트리 관리 시스템입니다.
-- 주요 구성요소:
-  - 블록체인 네트워크 서버: 테스트용 블록체인 노드 및 네트워크 구성
-  - registry-service: 스마트 컨트랙트 주소를 중앙에서 관리하는 레지스트리 서비스
-  - update_service: 소프트웨어 업데이트 등록·구매·설치 확인을 담당하는 스마트 컨트랙트 및 배포 스크립트
+## Overview
+This repository implements a blockchain-based software update and address registry system used for developing and testing secure on-chain update distribution. It contains a local test blockchain network, services for registering contract addresses, and scripts to deploy and interact with software update smart contracts.
 
-### 2. 개발 환경
-- 권장 운영체제: macOS / Linux
-- 필수 도구: Docker, Docker Compose, Python 3.9+, pip
-- 스마트 컨트랙트 컴파일: solc (py-solc-x를 통해 설치/사용 권장)
-- 테스트: pytest
+### Blockchain Network Flow
+1. Start the local blockchain test network (`blockchain-server`) which runs one or more test nodes and exposes JSON-RPC and WebSocket endpoints for local development and testing.
+2. The `registry-service` deploys or registers the AddressRegistry contract and maintains known contract addresses on-chain.
+3. Deployment scripts in `update_service` deploy the SoftwareUpdateContract and register its address with the registry when required.
+4. Services and test clients subscribe to contract events over WebSocket to detect deployments and state changes in real time.
+5. Integration tests interact with the same local network and services to validate contract behavior and service orchestration.
 
-### 3. 사용 기술
-- Solidity: 스마트 컨트랙트 구현
-- Web3.py: 파이썬에서 이더리움 노드와 상호작용
-- Python: 배포 스크립트 및 서비스 구현
-- Docker / Docker Compose: 서비스 컨테이너화 및 로컬 네트워크 구성
-- pytest: 단위/통합 테스트
+## Development Environment
+- Recommended OS: macOS (zsh) or Linux
+- Required tools: Docker, Docker Compose, Python 3.9+ and pip
+- Smart contract compilation: solc (py-solc-x recommended)
+- Tests: pytest
 
-### 4. 폴더 구조
-- `blockchain-server/` : 블록체인 노드 및 네트워크 관련 설정 (Dockerfile, docker-compose.yml)
-- `registry-service/` : AddressRegistry 스마트 컨트랙트 및 배포/서비스 코드
-  - `contracts/AddressRegistry.sol` 등
-  - `deploy/` 배포 스크립트
-- `update_service/` : SoftwareUpdateContract 스마트 컨트랙트 및 배포 스크립트
-  - `contracts/SoftwareUpdateContract.sol` 등
-  - `deploy/` 배포 관련 스크립트
-- `registry/`, `tests/`, `update/` : 각종 테스트 및 테스트용 구성
+## Technology Stack
+- ![Blockchain](https://img.shields.io/badge/Blockchain-121D33?style=flat&logo=blockchaindotcom&logoColor=white)  Local test network for contract development and testing
+- ![Smart Contract](https://img.shields.io/badge/Smart_Contract-2C3E50?style=flat&logo=ethereum&logoColor=white)  Solidity contracts for registry and update logic
+- ![Web3](https://img.shields.io/badge/Web3-F16822?style=flat&logo=web3dotjs&logoColor=white)  Web3.py for blockchain interaction
+- ![WebSocket](https://img.shields.io/badge/WebSocket-008080?style=flat&logo=socketdotio&logoColor=white)  Real-time event subscriptions from nodes
+- ![Flask](https://img.shields.io/badge/Flask-000000?style=flat&logo=flask&logoColor=white)  Optional backend services used by registry/update services
+- Docker / Docker Compose for containerized local development and orchestration
 
-실행 방법은 `install.md` 파일을 참고하세요.
+## Installation
+See `install.md` for detailed installation and run instructions. The repository includes Docker Compose configurations for local development and integrated tests.
+
+## Repository Structure
+```
+CODE_OF_CONDUCT.md
+install.md
+LICENSE
+README.md
+blockchain-server/
+	docker-compose.yml
+	Dockerfile
+registry-service/
+	docker-compose.yml
+	Dockerfile
+	registry_address.json
+	requirements.txt
+	contracts/
+		AddressRegistry.sol
+	deploy/
+		deploy_registry.py
+tests/
+	docker-compose.yml
+	Dockerfile
+	registry/
+		test_address_registry.py
+	update/
+		test_software_update.py
+update_service/
+	contract_address.json
+	docker-compose.yml
+	Dockerfile
+	requirements.txt
+	contracts/
+		SoftwareUpdateContract.sol
+	deploy/
+		deploy_contract.py
+		get_software_update_address.py
+```
+
+## License
+This project is licensed under the MIT License. See `LICENSE` for details.
+
+---
+
+Contributions and questions are welcome via Issues and Pull Requests.
