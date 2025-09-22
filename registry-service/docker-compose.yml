@@ -18,5 +18,5 @@ services:
     restart: "no"
 
 networks:
-  registry_network:
+  app-network:
     driver: bridge
