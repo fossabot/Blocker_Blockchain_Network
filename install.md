@@ -23,9 +23,18 @@ docker-compose up -d
 ```zsh
 cd ../registry-service
 docker-compose up --build -d
+for id in $(docker-compose ps -q); do
+  if [ -n "$id" ]; then
+    echo "Waiting for container $id to stop..."
+    docker wait "$id"
+  else
+    echo "No containers found for this compose project. Use 'docker-compose ps' to inspect."
+  fi
+done
 ```
+Wait for registry-service containers to stop and block until they exit
 
-4) Deploy the Update service (SoftwareUpdateContract)
+1) Deploy the Update service (SoftwareUpdateContract)
 ```zsh
 cd ../update_service
 docker-compose up --build -d
