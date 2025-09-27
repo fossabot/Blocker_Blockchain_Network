@@ -9,7 +9,7 @@ Prerequisites
 
 1) Change to the repository directory
 ```zsh
-cd /Users/c/Desktop/Git/Blocker_Blockchain_Network
+cd "$(git rev-parse --show-toplevel)"
 ```
 
 2) Start the blockchain server
