@@ -17,7 +17,8 @@ This repository implements a blockchain-based software update and address regist
 - Tests: pytest
 
 ## Technology Stack
-- ![Blockchain](https://img.shields.io/badge/Blockchain-121D33?style=flat&logo=blockchaindotcom&logoColor=white)  Local test network for contract development and testing
+- ![Blockchain](https://img.shields.io/badge/Blockchain-121D33?style=flat&logo=blockchaindotcom&logoColor=white) [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FHSU-Blocker%2FBlocker_Blockchain_Network.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FHSU-Blocker%2FBlocker_Blockchain_Network?ref=badge_shield)
+ Local test network for contract development and testing
 - ![Smart Contract](https://img.shields.io/badge/Smart_Contract-2C3E50?style=flat&logo=ethereum&logoColor=white)  Solidity contracts for registry and update logic
 - ![Web3](https://img.shields.io/badge/Web3-F16822?style=flat&logo=web3dotjs&logoColor=white)  Web3.py for blockchain interaction
 - ![WebSocket](https://img.shields.io/badge/WebSocket-008080?style=flat&logo=socketdotio&logoColor=white)  Real-time event subscriptions from nodes
@@ -70,3 +71,5 @@ This project is licensed under the MIT License. See `LICENSE` for details.
 ---
 
 Contributions and questions are welcome via Issues and Pull Requests.
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FHSU-Blocker%2FBlocker_Blockchain_Network.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FHSU-Blocker%2FBlocker_Blockchain_Network?ref=badge_large)
